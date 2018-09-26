@@ -39,10 +39,10 @@ let symMyTag = Symbol("myDeployer")
 
 class ContractBoard {
 
-    constructor(contractName, address, deployer) {
-        this.contractName = contractName
+    constructor(contractStr, address, deployer) {
+        this.contractStr = contractStr
         this.address = address
-        this[deployerSymbol] = deployer
+        this[symMyDeployer] = deployer
     }
 
     setTag(tag){
@@ -55,10 +55,11 @@ class ContractBoard {
         else{
             console.log(`set tag ${tag} failed: already exist\n${JSON.stringify(this)}`)
         }
+        return this
     }
 
     get deployer() {
-        this[deployerSymbol]
+        this[symMyDeployer]
     }
 
     get tag() {
@@ -67,27 +68,47 @@ class ContractBoard {
 
 }
 
+let symMyProvider = Symbol("myProvider")
+let symMyBoxLst = Symbol("myBoxLst")
+
 class CDeployer {
 
-    constructor(tag, connStr) {
-        this.tag = tag
+    constructor(networkName, connStr) {
+        this.networkName = networkName
         this.connStr = connStr
-        this.provider = new Web3.providers.HttpProvider(connStr)
+        this[symMyProvider] = new Web3.providers.HttpProvider(connStr)
 
         /** @type {{string:ContractBox}} */
-        this.boxLst = {}
+        this[symMyBoxLst] = {}
 
         /** @type {{string:ContractBoard}} */
         this.boardLst = {}
     }
 
+    get provider(){
+        return this[symMyProvider]
+    }
+
+    get boxLst() {
+        return this[symMyBoxLst]
+    }
+
     /**
      * create box from boxData and insert it to boxLst
-     * @param {{contractName, abi, bytecode}} boxData
+     * @param {string} contractStr - ex. 'v1/Leblock'
+     * @param {{contractName, abi, bytecode}} boxData - ex. '{"Leblock", [...], "0x..."}'
      */
-    createBox(boxData) {
+    createBox(contractStr, boxData) {
+        if(!!this.boxLst[contractStr]) {
+            return false // already exist
+        }
         let box = ContractBox.fromJson(boxData).setProvider(this.provider)
-        this.boxLst[box.contractName] = box
+        this.boxLst[contractStr] = box
+    }
+
+
+    getBox(contractStr){
+        return this.boxLst[contractStr]
     }
 
     regBoard(tag, board) {
@@ -99,11 +120,22 @@ class CDeployer {
     }
 
     uregBoard(tag) {
-        this.boardLst = undefined
+        this.boardLst[tag] = undefined
     }
 
-    async deploy(contractName, sender, ...args) {
-        let box = this.boxLst[contractName];
+    getBoard(tag) {
+        return this.boardLst[tag]
+    }
+
+    /**
+     * deploy with a contractStr
+     * @param {string} contractStr
+     * @param {string} sender
+     * @param {...any} args
+     * @return {Promise<ContractBoard>}
+     */
+    async deploy(contractStr, sender, ...args) {
+        let box = this.boxLst[contractStr];
         let truffleContract = box.truffleContract
 
         let truffleDeployer = new Deployer({
@@ -120,10 +152,7 @@ class CDeployer {
         })
 
         let rsp = await truffleDeployer.start();
-        return {
-            contractName: contractName,
-            address: rsp.address,
-        }
+        return new ContractBoard(contractName, rsp.address, this)
     }
 }
 
