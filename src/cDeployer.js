@@ -46,9 +46,9 @@ class ContractBoard {
     }
 
     setTag(tag){
-        if(this[deployerSymbol].regBoard(tag, this)) {
+        if(this[symMyDeployer].regBoard(tag, this)) {
             if(!!this[symMyTag]){
-                this[deployerSymbol].uregBoard(tag)
+                this[symMyDeployer].uregBoard(tag)
             }
             this[symMyTag] = tag
         }
@@ -135,7 +135,7 @@ class CDeployer {
      * @return {Promise<ContractBoard>}
      */
     async deploy(contractStr, sender, ...args) {
-        let box = this.boxLst[contractStr];
+        let box = this.getBox(contractStr);
         let truffleContract = box.truffleContract
 
         let truffleDeployer = new Deployer({
@@ -146,13 +146,15 @@ class CDeployer {
         })
 
         let gas = truffleContract.web3.eth.estimateGas({data: truffleContract.bytecode})
+
+        console.log(args)
         truffleDeployer.deploy(truffleContract, ...args, {
             from: sender,
             gas: gas * 1.2 | 0
         })
-
+        console.log(1)
         let rsp = await truffleDeployer.start();
-        return new ContractBoard(contractName, rsp.address, this)
+        return new ContractBoard(contractStr, rsp.address, this)
     }
 }
 

@@ -11,13 +11,13 @@ let chainData = {
       connStr: "http://127.0.0.1:7545",
       contracts: {
         AB01: {
-          sender: "0x7EA95C86192FdaB475f7De50257B1a3b55D19Aa0",
-          args: ["AB01", "100000000"],
+          sender: "0x373478c2FDaF8D28A91e0c4C2D31EC79596E872E",
+          args: ["AB01", "AB01Name", "100000000"],
           contractStr: "Leblock"
         },
         AB02: {
-          sender: "0x7EA95C86192FdaB475f7De50257B1a3b55D19Aa0",
-          args: ["AB02", "10000000"],
+          sender: "0x373478c2FDaF8D28A91e0c4C2D31EC79596E872E",
+          args: ["AB01", "AB01Name",  "10000000"],
           contractStr: "Leblock"
         },
       }
@@ -37,35 +37,35 @@ async function load(conf) {
 
   let all = {}
 
-  console.log(`=> loading procedure started. `)
+  console.log(`* loading procedure started. `)
   R.forEachObjIndexed(async (dConf, dName) => {
 
-    console.log(`=> config of deployer ${dName} has been found.`)
+    console.log(`* config of deployer ${dName} has been found.`)
     let deployer = new CDeployer(dName, dConf.connStr)
 
-    console.log(`=> deployer[${deployer.networkName}] has been created. provider : ${deployer.provider.host}`)
+    console.log(`== deployer[${deployer.networkName}] has been created. provider : ${deployer.provider.host} ==`)
     R.forEachObjIndexed(async (cConf, tag) => {
 
-      console.log(`=> ßoard ${tag} has been found, try get the box ${cConf.contractStr}.`)
+      console.log(`==== conf of ßoard ||${tag}|| has been found, try get the box ${cConf.contractStr}. ==`)
       if (!deployer.getBox(cConf.contractStr)) {
         let dataFile = JSON.parse(fs.readFileSync(`${chainData.buildPath}${cConf.contractStr}.json`, 'utf8'))
         let result = deployer.createBox(cConf.contractStr, dataFile)
-        console.log(`=> - deployer[${deployer.networkName}] created box[${cConf.contractStr}] : ${result}`)
+        console.log(`==== - deployer[${deployer.networkName}] created box[${cConf.contractStr}] : ${result}`)
       } else {
-        console.log(`=> - deployer[${deployer.networkName}] found box[${cConf.contractStr}]`)
+        console.log(`==== - deployer[${deployer.networkName}] found box[${cConf.contractStr}]`)
       }
 
       let args = argmap(cConf.args)
 
-      console.log(`=> arguments prepared : ${args}, start deploy.`)
-      let board = (await deployer.deploy(cConf.contractStr, cConf.sender, ...cConf.args)).setTag(tag)
+      console.log(`==== - arguments prepared : ${args}, start deploy.`)
+      let board = (await deployer.deploy(cConf.contractStr, cConf.sender, ...args)).setTag(tag)
 
-      console.log(`=> ßoard[${board.tag}] deployed : \n${JSON.stringify(board)}\n`)
+      console.log(`==== ßoard[${board.tag}] deployed : \n${JSON.stringify(board)}\n`)
     }, dConf.contracts)
 
-    all[dName] = JSON.stringify(deployer)
-  }, chainData.networks)
-  console.log(`=> loading procedure finish. `)
+    all[dName] = deployer.boardLst
+  }, conf.networks)
+  console.log(`* loading procedure finish. `)
   return all
 }
 
