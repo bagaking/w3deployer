@@ -1,4 +1,4 @@
-# w3glue
+# w3deployer
 
 ## init
 
