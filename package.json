@@ -1,0 +1,43 @@
+{
+  "name": "w3deployer",
+  "version": "0.0.1",
+  "description": "a help deploy eth contracts.",
+  "main": "src/glue.js",
+  "repository": "git@github.com:bagaking/w3deployer.git",
+  "author": "bagaking <zfaustk@qq.com>",
+  "license": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
+  "scripts": {
+    "build": "webpack -p",
+    "babel": "babel src -d lib -s inline"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "babel-runtime": "^6.26.0",
+    "ramda": "^0.25.0",
+    "truffle-contract": "^3.0.6",
+    "truffle-deployer": "^2.0.7",
+    "web3": "~0.20.6"
+  },
+  "peerDependencies": {
+    "babel-core": "^7.0.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-loader": "^8.0.2",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^8.0.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-jsdoc3": "^2.0.0",
+    "gulp-mocha": "^6.0.0",
+    "mocha": "^5.2.0",
+    "should": "^13.2.3",
+    "webpack": "^4.19.0",
+    "webpack-cli": "^3.1.0",
+    "truffle": "^4.1.14"
+  }
+}
