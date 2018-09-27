@@ -125,7 +125,7 @@ class CFactory {
       this.boards[netName][tag] = board
       console.log(`==== ${count}.b. ||${tag}|| deployed, board : ${JSON.stringify(board)}`)
     }
-    return this.boards[netName]
+    return this
   }
 
   async init() {
@@ -135,9 +135,7 @@ class CFactory {
       await this.createBoards(name)
       await this.executeInitScript(name)
     }
-
-
-    return JSON.stringify(this)
+    return this
   }
 }
 
