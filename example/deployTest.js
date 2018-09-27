@@ -1,7 +1,7 @@
 "using strict"
 
 let chainData = {
-  buildPath: `${__dirname}/../localTest/contracts/`,
+  buildPath: `${__dirname}/contracts/`,
   networks: {
     main: {
       connStr: "http://127.0.0.1:7545",
