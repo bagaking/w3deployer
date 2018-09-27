@@ -1,8 +1,8 @@
 {
   "name": "w3deployer",
-  "version": "0.0.1",
+  "version": "0.0.1-beta.1",
   "description": "a help deploy eth contracts.",
-  "main": "src/glue.js",
+  "main": "src/index.js",
   "repository": "git@github.com:bagaking/w3deployer.git",
   "author": "bagaking <zfaustk@qq.com>",
   "license": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
