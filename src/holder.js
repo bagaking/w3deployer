@@ -3,6 +3,8 @@
 const R = require("ramda")
 const fs = require("fs-extra")
 
+const Web3 = require('web3')
+const CBox = require("./box")
 const CFactory = require("./factory")
 
 /*
@@ -26,7 +28,7 @@ const CFactory = require("./factory")
  * @constructor
  */
 function subNetConf(netConf, boards = undefined) {
-    if(boards === undefined || boards === null) {
+    if (boards === undefined || boards === null) {
         return netConf
     }
     let {connStr, contracts, scripts} = netConf
@@ -44,12 +46,12 @@ function subNetConf(netConf, boards = undefined) {
  * @param {...{contractStr, address}} bs
  * @return {{contractStr, address}}
  */
-function mergeBoards(... bs){
+function mergeBoards(...bs) {
     let result = bs.reduce((sum, b) => {
         b = (b || {})
-        for(let netName in b){
+        for (let netName in b) {
             let netConf = b[netName]
-            if(!sum[netName]){
+            if (!sum[netName]) {
                 sum[netName] = netConf
             } else {
                 R.forEachObjIndexed((v, contractStr) => sum[netName][contractStr] = v, netConf)
@@ -60,35 +62,60 @@ function mergeBoards(... bs){
     return result
 }
 
-class CHolder extends CFactory {
+class CHolder {
 
     constructor(boxPath, networks, cacheFilePath) {
-        let netConfsExtra = {}
+        this._providers = {}
+        this._contracts = {}
+        this._netConfsExtra = {}
+        this.boxPath = boxPath
+        this.cacheFilePath = cacheFilePath
 
-        if(!fs.existsSync(cacheFilePath)){
-            fs.writeFileSync(cacheFilePath, JSON.stringify({}));
-        }
-        let cacheFile = JSON.parse(fs.readFileSync(cacheFilePath))
-        console.log("cacheFile", cacheFile)
+        if (!fs.existsSync(cacheFilePath)) fs.writeFileSync(cacheFilePath, JSON.stringify({}));
+        this.boards = JSON.parse(fs.readFileSync(cacheFilePath))
+
         for (let netName in networks) {
             let netConf = networks[netName]
-            netConfsExtra[netName] = subNetConf(netConf, cacheFile[netName])
+            this._netConfsExtra[netName] = subNetConf(netConf, this.boards[netName])
         }
-        console.log(netConfsExtra)
-        super(boxPath, netConfsExtra)
+        console.log("netConfsExtra", this._netConfsExtra)
 
-        this.cacheFilePath = cacheFilePath
-        this.originCache = cacheFile
+        this.factoryExtra = new CFactory(boxPath, this._netConfsExtra)
+
+        for (let netName in networks) {
+            let netConf = networks[netName]
+            this._providers[netName] = new Web3.providers.HttpProvider(netConf.connStr)
+            this._contracts[netName] = this._contracts[netName] || {}
+            for (let tag in netConf.contracts) {
+                let contractConf = netConf.contracts[tag]
+                let boxData = JSON.parse(fs.readFileSync(`${this.boxPath}${contractConf.contractStr}.json`, 'utf8'))
+                this._contracts[netName][tag] = CBox
+                    .fromJson(boxData)
+                    .setProvider(this._providers[netName])
+                    .truffleContract
+            }
+        }
+
     }
 
-    async init(){
-        let ret = await super.init()
-        this.allBoards = mergeBoards(this.originCache, this.boards)
-        return ret
+    async init() {
+        let ret = await this.factoryExtra.init()
+        this.boards = mergeBoards(this.boards, this.factoryExtra.boards)
+        for (let netName in this._contracts) {
+            let net = this._contracts[netName]
+            for (let tag in net) {
+                net[tag].at(this.boards[netName][tag].address)
+            }
+        }
+        return this
     }
 
-    save(){
-        fs.writeFileSync(this.cacheFilePath, JSON.stringify(this.allBoards, null, 4));
+    save() {
+        fs.writeFileSync(this.cacheFilePath, JSON.stringify(this.boards, null, 4));
+    }
+
+    get contracts(){
+        return this._contracts
     }
 
 

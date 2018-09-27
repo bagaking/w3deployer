@@ -2,6 +2,12 @@ const tContract = require("truffle-contract")
 
 let symTruffleContract = Symbol("truffleContract")
 
+
+/**
+ * you can hold a CBox, and can also using box to create contract
+ * @example
+ * `CBox.fromJson(netConf.contracts[tag].boxData).setProvider(this._providers[netName]).truffleContract`
+ */
 class CBox {
 
   /**
