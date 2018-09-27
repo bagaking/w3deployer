@@ -87,8 +87,9 @@ class CFactory {
     for (let i in netConf.scripts) {
       let srcPath = netConf.scripts[i]
       let initMethod = require(`${this.buildPath}${srcPath}`)
-      let result = initMethod instanceof Promise ? await initMethod(this.getNetConf(netName), this.getBoards(netName)) : initMethod(this.getNetConf(netName), this.getBoards(netName))
-      console.log(`==== ${srcPath} executed : ${result}`)
+      let board = this.getBoards(netName)
+      let result = initMethod instanceof Promise ? await initMethod(netName, netConf, board) : initMethod(netName, netConf, board)
+      console.log(`==== ${srcPath} executed, result : ${result}`)
     }
   }
 

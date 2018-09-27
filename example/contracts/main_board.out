@@ -1,0 +1,10 @@
+{
+  "AB01": {
+    "contractStr": "Leblock",
+    "address": "0x5117b11a0e7ada8d35c67c94d4925e874eb57a4d"
+  },
+  "AB02": {
+    "contractStr": "Leblock",
+    "address": "0x3d54796cfc23df8e3b8d9c84a87b445abb538112"
+  }
+}
