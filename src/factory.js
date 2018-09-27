@@ -2,8 +2,7 @@ const R = require("ramda")
 const fs = require("fs-extra")
 
 const CDeployer = require("./deployer")
-//
-// class CNetworks
+
 /*
 factory : factory procedure
 dconf.buildPath --> factory
@@ -14,12 +13,14 @@ dconf.networks -->|factory| (connStr, ...boxData, ...deployInfo)
 
 const symDeployers = Symbol("deployers")
 
+/**
+ * CFactory
+ */
 class CFactory {
 
-  constructor(buildPath, networks, ...scriptsPath) {
+  constructor(buildPath, networks) {
     this.buildPath = buildPath
     this.networks = networks
-    this.scriptsPath = scriptsPath
 
     this.boards = {}
     this[symDeployers] = {}
@@ -43,6 +44,10 @@ class CFactory {
     return this[symDeployers][netName]
   }
 
+  getBoards(netName) {
+    return this.boards[netName]
+  }
+
   /**
    * Create a single deployer
    * @param {string} netName
@@ -62,7 +67,7 @@ class CFactory {
 
   /**
    * create deployer for networks
-   * @param {Array<{connStr, contracts}>} networkConfs
+   * @param {Array<{connStr, contracts, scripts}>} networkConfs
    */
   createDeployers(networkConfs) {
     R.forEachObjIndexed((netConf, netName) => this.createDeployer(netName, netConf.connStr), networkConfs)
@@ -70,6 +75,21 @@ class CFactory {
 
   getBoxData(contractStr) {
     return JSON.parse(fs.readFileSync(`${this.buildPath}${contractStr}.json`, 'utf8'))
+  }
+
+  async executeInitScript(netName) {
+    let netConf = this.getNetConf(netName)
+    console.log(`== exec init src of deployer[${netName}] : ${netConf.scripts}`)
+
+    if (!netConf.scripts) {
+      return
+    }
+    for (let i in netConf.scripts) {
+      let srcPath = netConf.scripts[i]
+      let initMethod = require(`${this.buildPath}${srcPath}`)
+      let result = initMethod instanceof Promise ? await initMethod(this.getNetConf(netName), this.getBoards(netName)) : initMethod(this.getNetConf(netName), this.getBoards(netName))
+      console.log(`==== ${srcPath} executed : ${result}`)
+    }
   }
 
   createBoxes(netName) {
@@ -104,6 +124,7 @@ class CFactory {
       this.boards[netName][tag] = board
       console.log(`==== ${count}.b. ||${tag}|| deployed, board : ${JSON.stringify(board)}`)
     }
+    return this.boards[netName]
   }
 
   async init() {
@@ -111,7 +132,9 @@ class CFactory {
     for (let name in this[symDeployers]) {
       this.createBoxes(name)
       await this.createBoards(name)
+      await this.executeInitScript(name)
     }
+
 
     return JSON.stringify(this)
   }

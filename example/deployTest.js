@@ -16,7 +16,8 @@ let chainData = {
           args: ["AB01", "AB01Name", "10000000"],
           contractStr: "Leblock"
         },
-      }
+      },
+      scripts: [ "testInit" ]
     }
   }
 }
