@@ -1,6 +1,6 @@
 "using strict"
 
-const CDeployer = require("../src/cDeployer")
+const CDeployer = require("../src/deployer")
 const R = require("ramda")
 const fs = require("fs")
 
@@ -17,12 +17,21 @@ let chainData = {
         },
         AB02: {
           sender: "0x373478c2FDaF8D28A91e0c4C2D31EC79596E872E",
-          args: ["AB01", "AB01Name",  "10000000"],
+          args: ["AB01", "AB01Name", "10000000"],
           contractStr: "Leblock"
         },
       }
     }
   }
+}
+
+
+class cDeployerFactory {
+
+  constructor() {
+
+  }
+
 }
 
 
@@ -60,13 +69,13 @@ async function load(conf) {
       console.log(`==== - arguments prepared : ${args}, start deploy.`)
       let board = (await deployer.deploy(cConf.contractStr, cConf.sender, ...args)).setTag(tag)
 
-      console.log(`==== ßoard[${board.tag}] deployed : \n${JSON.stringify(board)}\n`)
+      console.log(`===> ßoard[${board.tag}] deployed : ${JSON.stringify(board)}`)
     }, dConf.contracts)
 
     all[dName] = deployer.boardLst
   }, conf.networks)
-  console.log(`* loading procedure finish. `)
+
   return all
 }
 
-load(chainData).then(console.log)
+load(chainData).then()

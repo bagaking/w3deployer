@@ -1,72 +1,8 @@
-let fs = require("fs");
-const Web3 = require('web3');
-let contract = require("truffle-contract");
-let Deployer = require("truffle-deployer");
+const Web3 = require('web3')
+const tDeployer = require("truffle-deployer")
 
-
-class ContractBox {
-
-    /**
-     * create a contract box
-     * @param {{contractName, abi, bytecode}} boxData
-     * @return {ContractBox}
-     */
-    static fromJson(boxData) {
-        let {contractName, abi, bytecode} = boxData
-        return new ContractBox(contractName, abi, bytecode)
-    }
-
-    constructor(contractName, abi, bytecode) {
-        this.contractName = contractName
-        this.abi = abi
-        this.bytecode = bytecode
-
-        this.truffleContract = contract({abi: abi, unlinked_binary: bytecode})
-    }
-
-    /**
-     * set provider
-     * @param {Web3} provider
-     */
-    setProvider(provider) {
-        this.truffleContract.setProvider(provider)
-        return this
-    }
-}
-
-let symMyDeployer = Symbol("myDeployer")
-let symMyTag = Symbol("myDeployer")
-
-class ContractBoard {
-
-    constructor(contractStr, address, deployer) {
-        this.contractStr = contractStr
-        this.address = address
-        this[symMyDeployer] = deployer
-    }
-
-    setTag(tag){
-        if(this[symMyDeployer].regBoard(tag, this)) {
-            if(!!this[symMyTag]){
-                this[symMyDeployer].uregBoard(tag)
-            }
-            this[symMyTag] = tag
-        }
-        else{
-            console.log(`set tag ${tag} failed: already exist\n${JSON.stringify(this)}`)
-        }
-        return this
-    }
-
-    get deployer() {
-        this[symMyDeployer]
-    }
-
-    get tag() {
-        return this[symMyTag]
-    }
-
-}
+const CBox = require("./box")
+const CBoard = require("./board")
 
 let symMyProvider = Symbol("myProvider")
 let symMyBoxLst = Symbol("myBoxLst")
@@ -78,10 +14,10 @@ class CDeployer {
         this.connStr = connStr
         this[symMyProvider] = new Web3.providers.HttpProvider(connStr)
 
-        /** @type {{string:ContractBox}} */
+        /** @type {{string:CBox}} */
         this[symMyBoxLst] = {}
 
-        /** @type {{string:ContractBoard}} */
+        /** @type {{string:CBoard}} */
         this.boardLst = {}
     }
 
@@ -102,7 +38,7 @@ class CDeployer {
         if(!!this.boxLst[contractStr]) {
             return false // already exist
         }
-        let box = ContractBox.fromJson(boxData).setProvider(this.provider)
+        let box = CBox.fromJson(boxData).setProvider(this.provider)
         this.boxLst[contractStr] = box
     }
 
@@ -132,13 +68,13 @@ class CDeployer {
      * @param {string} contractStr
      * @param {string} sender
      * @param {...any} args
-     * @return {Promise<ContractBoard>}
+     * @return {Promise<CBoard>}
      */
     async deploy(contractStr, sender, ...args) {
         let box = this.getBox(contractStr);
         let truffleContract = box.truffleContract
 
-        let truffleDeployer = new Deployer({
+        let truffleDeployer = new tDeployer({
             contracts: [truffleContract],
             network: "test",
             network_id: truffleContract.web3.version.network,
@@ -147,14 +83,13 @@ class CDeployer {
 
         let gas = truffleContract.web3.eth.estimateGas({data: truffleContract.bytecode})
 
-        console.log(args)
+        console.log("deploy:", contractStr, "args:", args, "from:", sender)
         truffleDeployer.deploy(truffleContract, ...args, {
             from: sender,
             gas: gas * 1.2 | 0
         })
-        console.log(1)
         let rsp = await truffleDeployer.start();
-        return new ContractBoard(contractStr, rsp.address, this)
+        return new CBoard(contractStr, rsp.address, this)
     }
 }
 
