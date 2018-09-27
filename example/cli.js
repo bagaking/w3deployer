@@ -21,7 +21,5 @@ console.log("boardPath", boardPath)
 fs.ensureDirSync(boardPath)
 
 let boardFilePath = Path.join(boardPath, "out.json")
-let factory = new CHolder(boxPath, networks, boardFilePath)
-factory.init().then(f => {
-    fs.writeFileSync(Path.join(boardPath, "out.json"), JSON.stringify(f.boards, null, 4));
-})
+let holder = new CHolder(boxPath, networks, boardFilePath)
+holder.init().then(h => h.save())

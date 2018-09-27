@@ -77,17 +77,20 @@ class CHolder extends CFactory {
         console.log(netConfsExtra)
         super(boxPath, netConfsExtra)
 
+        this.cacheFilePath = cacheFilePath
         this.originCache = cacheFile
     }
 
     async init(){
         let ret = await super.init()
-        //console.log(this.boards, this.originCache)
-        this.boards = mergeBoards(this.originCache, this.boards)
-        //console.log(this.boards)
-        this.originCache = {}
+        this.allBoards = mergeBoards(this.originCache, this.boards)
         return ret
     }
+
+    save(){
+        fs.writeFileSync(this.cacheFilePath, JSON.stringify(this.allBoards, null, 4));
+    }
+
 
 }
 
