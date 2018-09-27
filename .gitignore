@@ -1,3 +1,6 @@
+# Test
+example/**/*.out
+
 # Mac
 **/.DS_Store
 localTest/

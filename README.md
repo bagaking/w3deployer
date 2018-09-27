@@ -10,6 +10,12 @@ run on of these command:
 - `cnpm i`
 - `yarn install`
 
+## example
+
+see `./example/*.js`
+
+and run `yarn run start`
+
 ## doc
 
 the repo using gulp to generate document.
