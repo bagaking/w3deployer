@@ -83,7 +83,7 @@ class CDeployer {
 
         let gas = truffleContract.web3.eth.estimateGas({data: truffleContract.bytecode})
 
-        console.log("deploy:", contractStr, "args:", args, "from:", sender)
+        console.log("` deploy:", contractStr, "args:", args, "from:", sender)
         truffleDeployer.deploy(truffleContract, ...args, {
             from: sender,
             gas: gas * 1.2 | 0
