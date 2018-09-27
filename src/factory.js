@@ -1,3 +1,5 @@
+'using strict'
+
 const R = require("ramda")
 const fs = require("fs-extra")
 
@@ -18,8 +20,8 @@ const symDeployers = Symbol("deployers")
  */
 class CFactory {
 
-  constructor(buildPath, networks) {
-    this.buildPath = buildPath
+  constructor(boxPath, networks) {
+    this.boxPath = boxPath
     this.networks = networks
 
     this.boards = {}
@@ -74,7 +76,7 @@ class CFactory {
   }
 
   getBoxData(contractStr) {
-    return JSON.parse(fs.readFileSync(`${this.buildPath}${contractStr}.json`, 'utf8'))
+    return JSON.parse(fs.readFileSync(`${this.boxPath}${contractStr}.json`, 'utf8'))
   }
 
   async executeInitScript(netName) {
@@ -86,7 +88,7 @@ class CFactory {
     }
     for (let i in netConf.scripts) {
       let srcPath = netConf.scripts[i]
-      let initMethod = require(`${this.buildPath}${srcPath}`)
+      let initMethod = require(`${this.boxPath}${srcPath}`)
       let board = this.getBoards(netName)
       let result = initMethod instanceof Promise ? await initMethod(netName, netConf, board) : initMethod(netName, netConf, board)
       console.log(`==== ${srcPath} executed, result : ${result}`)

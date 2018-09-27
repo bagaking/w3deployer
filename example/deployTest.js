@@ -2,8 +2,8 @@
 
 const { CFactory } = require("../")
 
-let {buildPath, networks} = require("./chainConfig")
-let factory = new CFactory(buildPath, networks)
+let {boxPath, networks} = require("./chainConfig")
+let factory = new CFactory(boxPath, networks)
 
 factory.init().then(f => {
 })

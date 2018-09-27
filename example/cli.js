@@ -12,15 +12,15 @@ let out = cli.parse({
 confPath = Path.join(__dirname, out.conf)
 console.log("confPath", confPath, fs.existsSync(confPath))
 
-let {buildPath, networks} = require(confPath)
-console.log("buildPath", buildPath)
+let {boxPath, networks} = require(confPath)
+console.log("boxPath", boxPath)
 console.log("networks", networks)
 
 let boardPath = Path.dirname(Path.join(__dirname, out.board, " "))
 console.log("boardPath", boardPath)
 fs.ensureDirSync(boardPath)
 
-let factory = new CFactory(buildPath, networks)
+let factory = new CFactory(boxPath, networks)
 factory.init().then(f => {
     fs.writeFileSync(Path.join(boardPath, "out.json"), JSON.stringify(f.boards, null, 4));
 })

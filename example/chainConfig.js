@@ -3,7 +3,7 @@
 const Path = require("path")
 
 let chainConfig = {
-    buildPath: Path.join(__dirname, "./contracts/"),
+    boxPath: Path.join(__dirname, "./contracts/"),
     networks: {
         main: {
             connStr: "http://127.0.0.1:7545",
