@@ -132,10 +132,13 @@ class CFactory {
 
   async init() {
     this.createDeployers(this.networks)
-    for (let name in this[symDeployers]) {
-      this.createBoxes(name)
-      await this.createBoards(name)
-      await this.executeInitScript(name)
+    for (let netName in this[symDeployers]) {
+      this.createBoxes(netName)
+      await this.createBoards(netName)
+    }
+
+    for (let netName in this[symDeployers]) {
+      await this.executeInitScript(netName) //todo: it only executed for board that generated this time
     }
     return this
   }

@@ -2,7 +2,7 @@
 const Path = require("path")
 const cli = require("cli");
 const fs = require("fs-extra")
-const {CFactory} = require("../")
+const {CHolder} = require("../")
 
 let out = cli.parse({
     conf: ['c', "config path", "string", "chainConfig"],
@@ -20,7 +20,8 @@ let boardPath = Path.dirname(Path.join(__dirname, out.board, " "))
 console.log("boardPath", boardPath)
 fs.ensureDirSync(boardPath)
 
-let factory = new CFactory(boxPath, networks)
+let boardFilePath = Path.join(boardPath, "out.json")
+let factory = new CHolder(boxPath, networks, boardFilePath)
 factory.init().then(f => {
     fs.writeFileSync(Path.join(boardPath, "out.json"), JSON.stringify(f.boards, null, 4));
 })
