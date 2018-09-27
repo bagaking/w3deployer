@@ -14,7 +14,7 @@ run on of these command:
 
 see `./example/*.js`
 
-and run `yarn run start`
+and run `node example [-l testName]`
 
 ## doc
 
