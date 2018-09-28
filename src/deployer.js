@@ -1,96 +1,86 @@
-const Web3 = require('web3')
+const CNetwork = require('./network')
 const tDeployer = require("truffle-deployer")
-
-const CBox = require("./box")
 const CBoard = require("./board")
 
-let symMyProvider = Symbol("myProvider")
 let symMyBoxLst = Symbol("myBoxLst")
 
-class CDeployer {
+class CDeployer extends CNetwork {
 
-    constructor(networkName, connStr) {
-        this.networkName = networkName
-        this.connStr = connStr
-        this[symMyProvider] = new Web3.providers.HttpProvider(connStr)
+  constructor(netName, connStr) {
+    super(netName, connStr)
 
-        /** @type {{string:CBox}} */
-        this[symMyBoxLst] = {}
+    /** @type {{string:CBox}} */
+    this[symMyBoxLst] = {}
 
-        /** @type {{string:CBoard}} */
-        this.boardLst = {}
+    /** @type {{string:CBoard}} */
+    this.boardLst = {}
+  }
+
+  get boxLst() {
+    return this[symMyBoxLst]
+  }
+
+  /**
+   * create box from boxData and insert it to boxLst
+   * @param {string} contractStr - ex. 'v1/Leblock'
+   * @param {{contractName, abi, bytecode}} boxData - ex. '{"Leblock", [...], "0x..."}'
+   */
+  addBox(contractStr, boxData) {
+    if (!!this.boxLst[contractStr]) {
+      return false // already exist
     }
+    let box = this.createBox(boxData)
+    this.boxLst[contractStr] = box
+  }
 
-    get provider(){
-        return this[symMyProvider]
+  getBox(contractStr) {
+    return this.boxLst[contractStr]
+  }
+
+  regBoard(tag, board) {
+    if (!!this.boardLst[tag]) {
+      return false
     }
+    this.boardLst[tag] = board
+    return true
+  }
 
-    get boxLst() {
-        return this[symMyBoxLst]
-    }
+  uregBoard(tag) {
+    this.boardLst[tag] = undefined
+  }
 
-    /**
-     * create box from boxData and insert it to boxLst
-     * @param {string} contractStr - ex. 'v1/Leblock'
-     * @param {{contractName, abi, bytecode}} boxData - ex. '{"Leblock", [...], "0x..."}'
-     */
-    createBox(contractStr, boxData) {
-        if(!!this.boxLst[contractStr]) {
-            return false // already exist
-        }
-        let box = CBox.fromJson(boxData).setProvider(this.provider)
-        this.boxLst[contractStr] = box
-    }
+  getBoard(tag) {
+    return this.boardLst[tag]
+  }
 
+  /**
+   * deploy with a contractStr
+   * @param {string} contractStr
+   * @param {string} sender
+   * @param {...any} args
+   * @return {Promise<CBoard>}
+   */
+  async deploy(contractStr, sender, ...args) {
+    let box = this.getBox(contractStr);
+    let truffleContract = box.truffleContract
 
-    getBox(contractStr){
-        return this.boxLst[contractStr]
-    }
+    let truffleDeployer = new tDeployer({
+      contracts: [truffleContract],
+      network: "test",
+      network_id: truffleContract.web3.version.network,
+      provider: truffleContract.web3.currentProvider
+    })
 
-    regBoard(tag, board) {
-        if(!!this.boardLst[tag]){
-            return false
-        }
-        this.boardLst[tag] = board
-        return true
-    }
+    let gas = truffleContract.web3.eth.estimateGas({data: truffleContract.bytecode})
 
-    uregBoard(tag) {
-        this.boardLst[tag] = undefined
-    }
-
-    getBoard(tag) {
-        return this.boardLst[tag]
-    }
-
-    /**
-     * deploy with a contractStr
-     * @param {string} contractStr
-     * @param {string} sender
-     * @param {...any} args
-     * @return {Promise<CBoard>}
-     */
-    async deploy(contractStr, sender, ...args) {
-        let box = this.getBox(contractStr);
-        let truffleContract = box.truffleContract
-
-        let truffleDeployer = new tDeployer({
-            contracts: [truffleContract],
-            network: "test",
-            network_id: truffleContract.web3.version.network,
-            provider: truffleContract.web3.currentProvider
-        })
-
-        let gas = truffleContract.web3.eth.estimateGas({data: truffleContract.bytecode})
-
-        console.log("` deploy:", contractStr, "args:", args, "from:", sender)
-        truffleDeployer.deploy(truffleContract, ...args, {
-            from: sender,
-            gas: gas * 1.2 | 0
-        })
-        let rsp = await truffleDeployer.start();
-        return new CBoard(contractStr, rsp.address, this)
-    }
+    console.log("` deploy:", contractStr, "args:", args, "from:", sender)
+    truffleDeployer.deploy(truffleContract, ...args, {
+      from: sender,
+      gas: gas * 1.2 | 0
+    })
+    let rsp = await truffleDeployer.start();
+    return new CBoard(contractStr, rsp.address, this)
+  }
 }
 
 module.exports = CDeployer

@@ -102,7 +102,7 @@ class CFactory {
     let count = 0
     R.forEachObjIndexed(cConf => {
       if (!!deployer.getBox(cConf.contractStr)) return;
-      let result = deployer.createBox(cConf.contractStr, this.getBoxData(cConf.contractStr))
+      let result = deployer.addBox(cConf.contractStr, this.getBoxData(cConf.contractStr))
       console.log(`==== ${++count}. box[${cConf.contractStr}] created by deployer[${deployer.networkName}] : ${result}`)
     }, netConf.contracts)
   }

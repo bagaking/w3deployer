@@ -2,7 +2,6 @@ const tContract = require("truffle-contract")
 
 let symTruffleContract = Symbol("truffleContract")
 
-
 /**
  * you can hold a CBox, and can also using box to create contract
  * @example
@@ -28,7 +27,7 @@ class CBox {
     this[symTruffleContract] = tContract({abi: abi, unlinked_binary: bytecode})
   }
 
-  get truffleContract(){
+  get truffleContract() {
     return this[symTruffleContract]
   }
 

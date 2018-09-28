@@ -3,8 +3,7 @@
 const R = require("ramda")
 const fs = require("fs-extra")
 
-const Web3 = require('web3')
-const CBox = require("./box")
+const CNetwork = require('./network')
 const CFactory = require("./factory")
 
 /*
@@ -65,7 +64,7 @@ function mergeBoards(...bs) {
 class CHolder {
 
     constructor(boxPath, networks, cacheFilePath) {
-        this._providers = {}
+        this._networks = {}
         this._contracts = {}
         this._netConfsExtra = {}
         this.boxPath = boxPath
@@ -84,18 +83,14 @@ class CHolder {
 
         for (let netName in networks) {
             let netConf = networks[netName]
-            this._providers[netName] = new Web3.providers.HttpProvider(netConf.connStr)
+            this._networks[netName] = new CNetwork(netName, netConf.connStr)
             this._contracts[netName] = this._contracts[netName] || {}
             for (let tag in netConf.contracts) {
                 let contractConf = netConf.contracts[tag]
                 let boxData = JSON.parse(fs.readFileSync(`${this.boxPath}${contractConf.contractStr}.json`, 'utf8'))
-                this._contracts[netName][tag] = CBox
-                    .fromJson(boxData)
-                    .setProvider(this._providers[netName])
-                    .truffleContract
+                this._contracts[netName][tag] = this._networks[netName].createBox(boxData).truffleContract
             }
         }
-
     }
 
     async init() {
