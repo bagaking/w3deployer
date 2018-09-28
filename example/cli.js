@@ -27,3 +27,8 @@ holder.init().then(h => {
     console.log("==============================")
     console.log(h.getNet("main"))
 })
+
+/*
+example:
+node cli -c contracts -b out.json
+ */
