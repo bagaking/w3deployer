@@ -42,8 +42,8 @@ function subNetConf(netConf, boards = undefined) {
 
 /**
  * mergeBoards
- * @param {...{contractStr, address}} bs
- * @return {{contractStr, address}}
+ * @param {...{contractStr:string, address:string}} bs
+ * @return {{contractStr:string, address:string}}
  */
 function mergeBoards(...bs) {
     let result = bs.reduce((sum, b) => {
@@ -64,8 +64,9 @@ function mergeBoards(...bs) {
 class CHolder {
 
     constructor(boxPath, networks, cacheFilePath) {
+        /** @type{ Object.<string, CNetwork> } */
         this._networks = {}
-        this._contracts = {}
+        this._netConfs = networks
         this._netConfsExtra = {}
         this.boxPath = boxPath
         this.cacheFilePath = cacheFilePath
@@ -76,30 +77,24 @@ class CHolder {
         for (let netName in networks) {
             let netConf = networks[netName]
             this._netConfsExtra[netName] = subNetConf(netConf, this.boards[netName])
+            this._networks[netName] = new CNetwork(netName, netConf.connStr)
         }
         console.log("netConfsExtra", this._netConfsExtra)
 
         this.factoryExtra = new CFactory(boxPath, this._netConfsExtra)
-
-        for (let netName in networks) {
-            let netConf = networks[netName]
-            this._networks[netName] = new CNetwork(netName, netConf.connStr)
-            this._contracts[netName] = this._contracts[netName] || {}
-            for (let tag in netConf.contracts) {
-                let contractConf = netConf.contracts[tag]
-                let boxData = JSON.parse(fs.readFileSync(`${this.boxPath}${contractConf.contractStr}.json`, 'utf8'))
-                this._contracts[netName][tag] = this._networks[netName].createBox(boxData).truffleContract
-            }
-        }
     }
 
     async init() {
-        let ret = await this.factoryExtra.init()
+        await this.factoryExtra.init()
         this.boards = mergeBoards(this.boards, this.factoryExtra.boards)
-        for (let netName in this._contracts) {
-            let net = this._contracts[netName]
-            for (let tag in net) {
-                net[tag].at(this.boards[netName][tag].address)
+
+        for (let netName in this._netConfs) { // for each network
+            let netConf = this._netConfs[netName]
+            let net = this._networks[netName]
+            for (let tag in netConf.contracts) {
+                let contractConf = netConf.contracts[tag] //
+                let boxData = JSON.parse(fs.readFileSync(`${this.boxPath}${contractConf.contractStr}.json`, 'utf8')) // get boxData
+                net.createContract(tag, boxData).at(this.boards[netName][tag].address) // create contract and attach
             }
         }
         return this
@@ -109,11 +104,13 @@ class CHolder {
         fs.writeFileSync(this.cacheFilePath, JSON.stringify(this.boards, null, 4));
     }
 
-    get contracts(){
-        return this._contracts
+    getContract(netName, tag){
+        return this.getNet(netName).getContract(tag)
     }
 
-
+    getNet(netName) {
+        return this._networks[netName]
+    }
 }
 
 module.exports = CHolder
