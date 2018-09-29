@@ -37,6 +37,7 @@ class CBox {
    */
   setProvider(provider) {
     this.truffleContract.setProvider(provider)
+
     return this
   }
 }
