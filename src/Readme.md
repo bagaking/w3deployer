@@ -29,3 +29,9 @@
 
 1. **|| holder procedure (ensure) ||** --> deployedBoards(ensured)
 2. deployedBoards(ensured) --> |holder| reactors
+
+## plan
+
+1. [ ] try catch
+2. [ ] deploy script, and loading script
+3. [ ] extra script

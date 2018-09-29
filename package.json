@@ -1,6 +1,6 @@
 {
   "name": "w3deployer",
-  "version": "0.0.1-beta.5",
+  "version": "0.0.1-beta.6",
   "description": "a tool to help you deploy eth contracts.",
   "main": "src/index.js",
   "repository": "git@github.com:bagaking/w3deployer.git",

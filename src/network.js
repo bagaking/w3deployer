@@ -27,6 +27,7 @@ class CNetwork {
 
     createContract(tag, boxData) {
         this[symMyContracts][tag] = this.createBox(boxData).truffleContract
+        this[symMyContracts][tag].setProvider(this.provider)
         return this[symMyContracts][tag]
     }
 

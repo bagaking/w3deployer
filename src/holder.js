@@ -94,6 +94,9 @@ class CHolder {
             for (let tag in netConf.contracts) {
                 let contractConf = netConf.contracts[tag] //
                 let boxData = JSON.parse(fs.readFileSync(`${this.boxPath}${contractConf.contractStr}.json`, 'utf8')) // get boxData
+
+                console.log("-- attach", netName, tag, this.boards[netName][tag].address)
+
                 net.createContract(tag, boxData).at(this.boards[netName][tag].address) // create contract and attach
             }
         }
