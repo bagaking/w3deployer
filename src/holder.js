@@ -84,8 +84,8 @@ class CHolder {
         this.factoryExtra = new CFactory(boxPath, this._netConfsExtra)
     }
 
-    async init() {
-        await this.factoryExtra.init()
+    async start() {
+        await this.factoryExtra.start()
         this.boards = mergeBoards(this.boards, this.factoryExtra.boards)
 
         for (let netName in this._netConfs) { // for each network
@@ -97,7 +97,9 @@ class CHolder {
 
                 console.log("-- attach", netName, tag, this.boards[netName][tag].address)
 
-                net.createContract(tag, boxData).at(this.boards[netName][tag].address) // create contract and attach
+                let c = net.createContract(tag, boxData)
+                await c.at(this.boards[netName][tag].address) // create contract and attach
+                c.address = this.boards[netName][tag].address
             }
         }
         return this
@@ -107,13 +109,25 @@ class CHolder {
         fs.writeFileSync(this.cacheFilePath, JSON.stringify(this.boards, null, 4));
     }
 
+    getNet(netName) {
+        return this._networks[netName]
+    }
+
+    getProvider(netName){
+        return this.getNet(netName).provider
+    }
+
     getContract(netName, tag){
         return this.getNet(netName).getContract(tag)
     }
 
-    getNet(netName) {
-        return this._networks[netName]
+    getNetConf(netName, tag){
+        return this._netConfs[netName][tag]
     }
+
+
+
+
 }
 
 module.exports = CHolder

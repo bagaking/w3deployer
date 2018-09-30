@@ -9,12 +9,10 @@ class CNetwork {
     constructor(netName, connStr) {
         this.networkName = netName
         this.connStr = connStr
+
+        console.log("-- create network provider ", connStr)
         this[symMyProvider] = new Web3.providers.HttpProvider(connStr)
         this[symMyContracts] = {}
-    }
-
-    get provider() {
-        return this[symMyProvider]
     }
 
     get contracts() {
@@ -29,6 +27,10 @@ class CNetwork {
         this[symMyContracts][tag] = this.createBox(boxData).truffleContract
         this[symMyContracts][tag].setProvider(this.provider)
         return this[symMyContracts][tag]
+    }
+
+    get provider() {
+        return this[symMyProvider]
     }
 
     getContract(tag){

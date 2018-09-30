@@ -130,7 +130,7 @@ class CFactory {
     return this
   }
 
-  async init() {
+  async start() {
     this.createDeployers(this.networks)
     for (let netName in this[symDeployers]) {
       this.createBoxes(netName)

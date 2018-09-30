@@ -22,7 +22,7 @@ fs.ensureDirSync(boardPath)
 
 let boardFilePath = Path.join(boardPath, "out.json")
 let holder = new CHolder(boxPath, networks, boardFilePath)
-holder.init().then(h => {
+holder.start().then(h => {
     h.save()
     console.log("==============================")
     console.log(h.getNet("main"))
