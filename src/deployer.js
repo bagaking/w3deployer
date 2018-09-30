@@ -38,22 +38,6 @@ class CDeployer extends CNetwork {
         return this.boxLst[contractStr]
     }
 
-    regBoard(tag, board) {
-        if (!!this.boardLst[tag]) {
-            return false
-        }
-        this.boardLst[tag] = board
-        return true
-    }
-
-    uregBoard(tag) {
-        this.boardLst[tag] = undefined
-    }
-
-    getBoard(tag) {
-        return this.boardLst[tag]
-    }
-
     /**
      * deploy with a contractStr
      * @param {string} contractStr
@@ -80,7 +64,9 @@ class CDeployer extends CNetwork {
             gas: gas * 1.2 | 0
         })
         let rsp = await truffleDeployer.start();
-        return new CBoard(contractStr, rsp.address, this)
+        let board =  new CBoard(contractStr, rsp.address, rsp)
+        console.log(board.json)
+        return board
     }
 }
 

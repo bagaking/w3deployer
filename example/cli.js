@@ -25,7 +25,7 @@ let holder = new CHolder(boxPath, networks, boardFilePath)
 holder.start().then(h => {
     h.save()
     console.log("==============================")
-    console.log(h.getNet("main"))
+    //console.log(h.getNet("main"))
 })
 
 /*

@@ -1,34 +1,18 @@
-let symMyDeployer = Symbol("myDeployer")
-let symMyTag = Symbol("symMyTag")
+let symMyContract = Symbol("symMyContract")
 
 class CBoard {
 
-  constructor(contractStr, address, deployer) {
-    this.contractStr = contractStr
-    this.address = address
-    this[symMyDeployer] = deployer
-  }
+    constructor(contractStr, address, tContract) {
+        this.contractStr = contractStr
+        this.address = address
 
-  setTag(tag) {
-    if (this[symMyDeployer].regBoard(tag, this)) {
-      if (!!this[symMyTag]) {
-        this[symMyDeployer].uregBoard(tag)
-      }
-      this[symMyTag] = tag
+        /** @type {tContract} */
+        this[symMyContract] = tContract
     }
-    else {
-      console.log(`set tag ${tag} failed: already exist\n${JSON.stringify(this)}`)
+
+    get contract() {
+        return this[symMyContract]
     }
-    return this
-  }
-
-  get deployer() {
-    this[symMyDeployer]
-  }
-
-  get tag() {
-    return this[symMyTag]
-  }
 
 }
 

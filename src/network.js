@@ -10,9 +10,9 @@ class CNetwork {
         this.networkName = netName
         this.connStr = connStr
 
-        console.log("-- create network provider ", connStr)
-        this[symMyProvider] = new Web3.providers.HttpProvider(connStr)
         this[symMyContracts] = {}
+        this[symMyProvider] = new Web3.providers.HttpProvider(connStr)
+        // console.log("-- create network provider ", connStr, this.provider)
     }
 
     get contracts() {

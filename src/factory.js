@@ -20,128 +20,129 @@ const symDeployers = Symbol("deployers")
  */
 class CFactory {
 
-  constructor(boxPath, networks) {
-    this.boxPath = boxPath
-    this.networks = networks
+    constructor(boxPath, networks) {
+        this.boxPath = boxPath
+        this.networks = networks
 
-    this.boards = {}
-    this[symDeployers] = {}
-  }
-
-  /**
-   * get config by netName
-   * @param {string} netName
-   * @return {connStr, contracts}
-   */
-  getNetConf(netName) {
-    return this.networks[netName]
-  }
-
-  /**
-   * get Deployer by netName
-   * @param {string} netName
-   * @return {CDeployer}
-   */
-  getDeployer(netName) {
-    return this[symDeployers][netName]
-  }
-
-  getBoards(netName) {
-    return this.boards[netName]
-  }
-
-  /**
-   * Create a single deployer
-   * @param {string} netName
-   * @param {string} connStr
-   */
-  createDeployer(netName, connStr) {
-    let org = this.getDeployer(netName)
-    if (!org) {
-      let deployer = new CDeployer(netName, connStr)
-      this[symDeployers][netName] = deployer
-      console.log(`factory: create deployer[${deployer.networkName}] succeed. provider : ${deployer.provider.host} ==`)
-    } else {
-      console.log(`factory: create deployer[${org.networkName}] failed. already exist : ${org.provider.host} ==`)
-    }
-    this.boards[netName] = {}
-  }
-
-  /**
-   * create deployer for networks
-   * @param {Array<{connStr, contracts, scripts}>} networkConfs
-   */
-  createDeployers(networkConfs) {
-    R.forEachObjIndexed((netConf, netName) => this.createDeployer(netName, netConf.connStr), networkConfs)
-  }
-
-  getBoxData(contractStr) {
-    return JSON.parse(fs.readFileSync(`${this.boxPath}${contractStr}.json`, 'utf8'))
-  }
-
-  async executeInitScript(netName) {
-    let netConf = this.getNetConf(netName)
-    console.log(`== exec init src of deployer[${netName}] : ${netConf.scripts}`)
-
-    if (!netConf.scripts) {
-      return
-    }
-    for (let i in netConf.scripts) {
-      let srcPath = netConf.scripts[i]
-      let initMethod = require(`${this.boxPath}${srcPath}`)
-      let board = this.getBoards(netName)
-      let result = initMethod instanceof Promise ? await initMethod(netName, netConf, board) : initMethod(netName, netConf, board)
-      console.log(`==== ${srcPath} executed, result : ${result}`)
-    }
-  }
-
-  createBoxes(netName) {
-    let deployer = this.getDeployer(netName)
-    let netConf = this.getNetConf(netName)
-    console.log(`== create boxes of deployer[${netName}]`)
-    let count = 0
-    R.forEachObjIndexed(cConf => {
-      if (!!deployer.getBox(cConf.contractStr)) return;
-      let result = deployer.addBox(cConf.contractStr, this.getBoxData(cConf.contractStr))
-      console.log(`==== ${++count}. box[${cConf.contractStr}] created by deployer[${deployer.networkName}] : ${result}`)
-    }, netConf.contracts)
-  }
-
-  argmap(args) {
-    return args
-  }
-
-  async createBoards(netName) {
-    let deployer = this.getDeployer(netName)
-    let netConf = this.getNetConf(netName)
-    console.log(`== create boards of deployer[${netName}]`)
-    let count = 0
-    for (let tag in netConf.contracts) {
-      ++count
-      let cConf = netConf.contracts[tag]
-
-      let args = this.argmap(cConf.args)
-      console.log(`==== ${count}.a. try deploy ||${tag}|| : ${JSON.stringify(args)}.`)
-
-      let board = (await deployer.deploy(cConf.contractStr, cConf.sender, ...args)).setTag(tag)
-      this.boards[netName][tag] = board
-      console.log(`==== ${count}.b. ||${tag}|| deployed, board : ${JSON.stringify(board)}`)
-    }
-    return this
-  }
-
-  async start() {
-    this.createDeployers(this.networks)
-    for (let netName in this[symDeployers]) {
-      this.createBoxes(netName)
-      await this.createBoards(netName)
+        this.boards = {}
+        this[symDeployers] = {}
     }
 
-    for (let netName in this[symDeployers]) {
-      await this.executeInitScript(netName) //todo: it only executed for board that generated this time
+    /**
+     * get config by netName
+     * @param {string} netName
+     * @return {connStr, contracts}
+     */
+    getNetConf(netName) {
+        return this.networks[netName]
     }
-    return this
-  }
+
+    /**
+     * get Deployer by netName
+     * @param {string} netName
+     * @return {CDeployer}
+     */
+    getDeployer(netName) {
+        return this[symDeployers][netName]
+    }
+
+    getBoards(netName) {
+        return this.boards[netName]
+    }
+
+    /**
+     * Create a single deployer
+     * @param {string} netName
+     * @param {string} connStr
+     */
+    createDeployer(netName, connStr) {
+        let org = this.getDeployer(netName)
+        if (!org) {
+            let deployer = new CDeployer(netName, connStr)
+            this[symDeployers][netName] = deployer
+            console.log(`factory: create deployer[${deployer.networkName}] succeed. provider : ${deployer.provider.host} ==`)
+        } else {
+            console.log(`factory: create deployer[${org.networkName}] failed. already exist : ${org.provider.host} ==`)
+        }
+        this.boards[netName] = {}
+    }
+
+    /**
+     * create deployer for networks
+     * @param {Array<{connStr, contracts, scripts}>} networkConfs
+     */
+    createDeployers(networkConfs) {
+        R.forEachObjIndexed((netConf, netName) => this.createDeployer(netName, netConf.connStr), networkConfs)
+    }
+
+    getBoxData(contractStr) {
+        return JSON.parse(fs.readFileSync(`${this.boxPath}${contractStr}.json`, 'utf8'))
+    }
+
+    async executeInitScript(netName) {
+        let netConf = this.getNetConf(netName)
+        console.log(`== exec init src of deployer[${netName}] : ${netConf.scripts}`)
+
+        if (!netConf.scripts) {
+            return
+        }
+        for (let i in netConf.scripts) {
+            let srcPath = netConf.scripts[i]
+            let initMethod = require(`${this.boxPath}${srcPath}`)
+            let board = this.getBoards(netName)
+            let result = initMethod instanceof Promise ? await initMethod(netName, netConf, board) : initMethod(netName, netConf, board)
+            console.log(`==== ${srcPath} executed, result : ${result}`)
+        }
+    }
+
+    createBoxes(netName) {
+        let deployer = this.getDeployer(netName)
+        let netConf = this.getNetConf(netName)
+        console.log(`== create boxes of deployer[${netName}]`)
+        let count = 0
+        R.forEachObjIndexed(cConf => {
+            if (!!deployer.getBox(cConf.contractStr)) return;
+            let result = deployer.addBox(cConf.contractStr, this.getBoxData(cConf.contractStr))
+            console.log(`==== ${++count}. box[${cConf.contractStr}] created by deployer[${deployer.networkName}] : ${result}`)
+        }, netConf.contracts)
+    }
+
+    argmap(args) {
+        return args
+    }
+
+    async createBoards(netName) {
+        let deployer = this.getDeployer(netName)
+        let netConf = this.getNetConf(netName)
+        console.log(`== create boards of deployer[${netName}]`)
+        let count = 0
+        for (let tag in netConf.contracts) {
+            ++count
+            let cConf = netConf.contracts[tag]
+
+            let args = this.argmap(cConf.args)
+            console.log(`==== ${count}.a. try deploy ||${tag}|| : ${JSON.stringify(args)}.`)
+
+            let board = await deployer.deploy(cConf.contractStr, cConf.sender, ...args)
+
+            this.boards[netName][tag] = board
+            console.log(`==== ${count}.b. ||${tag}|| deployed, board : ${JSON.stringify(board)}`)
+        }
+        return this
+    }
+
+    async start() {
+        this.createDeployers(this.networks)
+        for (let netName in this[symDeployers]) {
+            this.createBoxes(netName)
+            await this.createBoards(netName)
+        }
+
+        for (let netName in this[symDeployers]) {
+            await this.executeInitScript(netName) //todo: it only executed for board that generated this time
+        }
+        return this
+    }
 }
 
 module.exports = CFactory
