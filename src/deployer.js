@@ -1,8 +1,8 @@
 const CNetwork = require('./network')
 const tDeployer = require("truffle-deployer")
-const CBoard = require("./board")
+const {CBoard} = require("w3glue")
 
-let symMyBoxLst = Symbol("myBoxLst")
+const symMyBoxLst = Symbol("myBoxLst")
 
 class CDeployer extends CNetwork {
 
@@ -11,9 +11,6 @@ class CDeployer extends CNetwork {
 
         /** @type {{string:CBox}} */
         this[symMyBoxLst] = {}
-
-        /** @type {{string:CBoard}} */
-        this.boardLst = {}
     }
 
     get boxLst() {
@@ -64,7 +61,7 @@ class CDeployer extends CNetwork {
             gas: gas * 1.2 | 0
         })
         let rsp = await truffleDeployer.start();
-        let board =  new CBoard(contractStr, rsp.address, rsp)
+        let board = new CBoard(contractStr, rsp.address, rsp)
         console.log(board.json)
         return board
     }

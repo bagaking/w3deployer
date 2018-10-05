@@ -6,7 +6,7 @@ const fs = require("fs-extra")
 
 const CNetwork = require('./network')
 const CFactory = require("./factory")
-const CBoard = require("./board")
+const {CBoard} = require("w3glue")
 
 /*
 ### holder : ensure procedure
